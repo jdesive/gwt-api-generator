@@ -1,4 +1,4 @@
-var _ = require('lodash');
+const _ = require('lodash');
 
 module.exports = {
   marked: require('marked').setOptions({
@@ -12,16 +12,16 @@ module.exports = {
   }),
   javaKeywords: ['for', 'switch'], // TODO: if it's necessary add other keywords as well
   findBehavior: function(name) {
-    for (var i = 0; name && i < global.parsed.length; i++) {
-      var item = global.parsed[i];
+    for (let i = 0; name && i < global.parsed.length; i++) {
+      const item = global.parsed[i];
       if (this.isBehavior(item) && this.className(item.is) == this.className(name)) {
         return global.parsed[i];
       }
     }
   },
   findElement: function(name) {
-    for (var i = 0; name && i < global.parsed.length; i++) {
-      var item = global.parsed[i];
+    for (let i = 0; name && i < global.parsed.length; i++) {
+      const item = global.parsed[i];
       if (!this.isBehavior(item) && this.className(item.is) == this.className(name)) {
         return global.parsed[i];
       }
@@ -31,12 +31,12 @@ module.exports = {
     return ((item && item.type) || this.type) == 'behavior';
   },
   getNestedBehaviors: function(item, name) {
-    var _this = this;
-    var properties = [];
+    const _this = this;
+    let properties = [];
 
-    var events = [];
+    let events = [];
 
-    var behavior = this.findBehavior(name)
+    const behavior = this.findBehavior(name)
     if (behavior) {
       events = behavior.events;
 
@@ -49,7 +49,7 @@ module.exports = {
 
       if(behavior.behaviors) {
         behavior.behaviors.forEach(function(b) {
-          var nestedBehaviors = _this.getNestedBehaviors(item, b);
+          const nestedBehaviors = _this.getNestedBehaviors(item, b);
           properties = _.union(properties, nestedBehaviors.properties);
           events = _.union(events, nestedBehaviors.events);
         });
@@ -65,9 +65,9 @@ module.exports = {
     return this.className(name) + (this.isBehavior() ? '' : 'Element');
   },
   baseClassName: function () {
-    var _this = this;
+    const _this = this;
     // Always extend native HTMLElement
-    var e = ['HTMLElement'];
+    const e = ['HTMLElement'];
     if (this.behaviors && this.behaviors.length) {
       this.behaviors.forEach(function(name){
         // CoreResizable -> CoreResizableElement, core-input -> CoreInputElment
@@ -139,18 +139,18 @@ module.exports = {
   getGettersAndSetters: function(properties) {
     // Sorting properties so no-typed and String methods are at end
     properties.sort(function(a, b) {
-      var t1 = this.computeType(a.type);
-      var t2 = this.computeType(b.type);
+      const t1 = this.computeType(a.type);
+      const t2 = this.computeType(b.type);
       return t1 == t2 ? 0: !a.type && b.type ? 1 : a.type && !b.type ? -1: t1 == 'String' ? 1 : -1;
     }.bind(this));
-    var ret = [];
+    const ret = [];
     // We use done hash to avoid generate same property with different signature (unsupported in JsInterop)
-    var done = {};
+    const done = {};
     // We use cache to catch especial cases of getter/setter no defined in the
     // properties block but as 'set foo:{}, get foo:{}' pairs. The hack is that
     // first we see a method with the a valid type (setter) and then we visit
     // a method with the same name but empty type (getter).
-    var cache = {};
+    const cache = {};
 
     _.forEach(properties, function(item) {
       // We consider as properties:
@@ -181,12 +181,12 @@ module.exports = {
     return ret;
   },
   getStringSetters: function(properties) {
-    var ret = [];
-    var arr = this.getGettersAndSetters(properties);
+    const ret = [];
+    const arr = this.getGettersAndSetters(properties);
     _.forEach(arr, function(item) {
-      var itType = this.computeType(item.type) ;
+      const itType = this.computeType(item.type) ;
       if (!/(PolymerFunction|String|boolean)/.test(itType)) {
-        for (var j = 0; j< arr.length; j++) {
+        for (let j = 0; j< arr.length; j++) {
           if (arr[j].name == item.name && arr[j].type == 'String') {
             return;
           }
@@ -202,13 +202,13 @@ module.exports = {
   getMethods: function(properties) {
     // Sorting properties so Object methods are at first
     properties.sort(function(a, b) {
-      var t1 = this.typedParamsString(a);
-      var t2 = this.typedParamsString(b);
+      const t1 = this.typedParamsString(a);
+      const t2 = this.typedParamsString(b);
       return t1 == t2 ? 0: /^Object/.test(t1) ? -1 : 1;
     }.bind(this));
 
     // Skip functions with name equal to a getter/setter
-    var gsetters = {};
+    const gsetters = {};
     _.forEach(properties, function(item) {
       if (item.getter) {
         gsetters[item.getter] = true;
@@ -217,15 +217,15 @@ module.exports = {
       }
     }.bind(this));
 
-    var ret = [];
-    var done = {};
+    const ret = [];
+    const done = {};
     _.forEach(properties, function(item) {
       if (!gsetters[item.name] && !item.getter && !item.private && !item.published && /function/i.test(item.type)) {
         item.method = item.method || item.name + '(' + this.typedParamsString(item) + ')';
         // JsInterop + SDM do not support method overloading if one signature is object
-        var other = item.method.replace(/String/, 'Object');
-        var signature = this.computeSignature(item.method);
-        var other_sig = this.computeSignature(other);
+        const other = item.method.replace(/String/, 'Object');
+        const signature = this.computeSignature(item.method);
+        const other_sig = this.computeSignature(other);
         if (!gsetters[signature] && !done[signature] && !done[other_sig]) {
           ret.push(item);
           done[signature] = true;
@@ -235,7 +235,7 @@ module.exports = {
     return ret;
   },
   removePrivateApi: function(arr, prop) {
-    for (var i = arr.length - 1; i >= 0; i--) {
+    for (let i = arr.length - 1; i >= 0; i--) {
       if (/^(_.*|ready|created)$/.test(arr[i][prop])) {
         arr.splice(i, 1);
       }
@@ -257,11 +257,11 @@ module.exports = {
     return string.charAt(0).toUpperCase() + string.slice(1);
   },
   computeGetterWithPrefix: function(item) {
-    var name = item.name.replace(/^detail\./,'');
+    const name = item.name.replace(/^detail\./,'');
     // replaced isXXX methods with getXXX temporary because of bug in JsInterop
     // because in the case of isNarrow, the JS generated is something like $object.arrow
-    //var prefix = /^boolean/i.test(item.type) ? 'is' : 'get';
-    var prefix = 'get';
+    //const prefix = /^boolean/i.test(item.type) ? 'is' : 'get';
+    const prefix = 'get';
     if (this.startsWith(name, prefix)) {
       return name;
     } else {
@@ -278,27 +278,27 @@ module.exports = {
     if (method.type != 'PolymerFunction') {
       return method.type;
     }
-    var result = [];
+    const result = [];
     if (method.params) {
       method.params.forEach(function(param) {
-        var type = this.computeType(param.type);
+        const type = this.computeType(param.type);
         result.push(type);
       }, this);
     }
     return result.join(',');
   },
   typedParamsString: function(method) {
-    var result = [];
+    const result = [];
     if (method.params) {
       method.params.forEach(function(param) {
-        var type = this.computeType(param.type);
+        const type = this.computeType(param.type);
         result.push(type + ' ' + this.computeMethodName(param.name));
       }, this);
     }
     return result.join(', ');
   },
   paramsString: function(method) {
-    var result = [];
+    const result = [];
     if (method.params) {
       method.params.forEach(function(param) {
         result.push(this.computeMethodName(param.name));
@@ -314,15 +314,15 @@ module.exports = {
   },
   getDescription: function(spaces, o) {
     o = o || this;
-    var desc = o.description || o.desc || '';
+    let desc = o.description || o.desc || '';
     desc = this.marked(desc);
     return (desc).trim().split('\n').join('\n' + spaces + '* ').replace(/\*\//g, "* /");
   },
   disclaimer: function() {
-    var projectName = this.bowerData.name || "unknown";
-    var projectLicense = this.bowerData.license || "unknown";
+    const projectName = this.bowerData.name || "unknown";
+    const projectLicense = this.bowerData.license || "unknown";
 
-    var projectAuthors = this.bowerData.authors || this.bowerData.author;
+    let projectAuthors = this.bowerData.authors || this.bowerData.author;
     if (projectAuthors && projectAuthors.map) {
       projectAuthors = projectAuthors.map(function(author) {
         return author.name ? author.name : author;
@@ -338,7 +338,7 @@ module.exports = {
   },
   j2s: function(json, msg) {
     msg = msg || '';
-    var cache = [];
+    const cache = [];
     console.log(msg + JSON.stringify(json, function(key, value) {
         if (typeof value === 'object' && value !== null) {
             if (cache.indexOf(value) !== -1) {

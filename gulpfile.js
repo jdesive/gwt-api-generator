@@ -1,24 +1,24 @@
 "use strict";
 
-var args = require('minimist')(process.argv.slice(2));
-var gulp = require('gulp');
-var bower = require('gulp-bower');
-var map = require('map-stream');
-var fs = require('fs-extra');
-var globalVar = require('./template/tasks/global-variables');
-var gutil = require('gulp-util');
-var _ = require('lodash');
-var runSequence = require('run-sequence');
-var hyd = require("hydrolysis");
-var jsonfile = require('jsonfile');
-var StreamFromArray = require('stream-from-array');
-var rename = require("gulp-rename");
-var marked = require('marked');
+const args = require('minimist')(process.argv.slice(2));
+const gulp = require('gulp');
+const bower = require('gulp-bower');
+const map = require('map-stream');
+const fs = require('fs-extra');
+const globalVar = require('./template/tasks/global-variables');
+const gutil = require('gulp-util');
+const _ = require('lodash');
+const runSequence = require('run-sequence');
+const hyd = require("hydrolysis");
+const jsonfile = require('jsonfile');
+const StreamFromArray = require('stream-from-array');
+const rename = require("gulp-rename");
+const marked = require('marked');
 
-var libDir = __dirname + '/lib/';
-var tplDir = __dirname + '/template/';
+const libDir = __dirname + '/lib/';
+const tplDir = __dirname + '/template/';
 
-var helpers = require(tplDir + "helpers");
+const helpers = require(tplDir + "helpers");
 require('require-dir')(tplDir + 'tasks');
 
 // Using global because if we try to pass it to templates via the helper or any object
@@ -62,13 +62,13 @@ gulp.task('parse', ['analyze'], function(cb) {
   global.parsed.forEach(function(item) {
     if (!helpers.isBehavior(item) && item.behaviors && item.behaviors.length) {
       item.behaviors.forEach(function(name) {
-        var nestedBehaviors = helpers.getNestedBehaviors(item, name);
+        const nestedBehaviors = helpers.getNestedBehaviors(item, name);
         item.properties = _.union(item.properties, nestedBehaviors.properties);
 
         // merge events
         if (nestedBehaviors.events && nestedBehaviors.events.length) {
           nestedBehaviors.events.forEach(function (event) {
-            var notDuplicate = _.filter(item.events, function (e) {
+            const notDuplicate = _.filter(item.events, function (e) {
                 return e.name == event.name;
               }).length === 0;
             if (notDuplicate) {
@@ -80,9 +80,9 @@ gulp.task('parse', ['analyze'], function(cb) {
     }
     if (item.events) {
       item.events.forEach(function(event) {
-        var p = [];
+        const p = [];
         event.params.forEach(function(param) {
-          var notDuplicate = _.filter(p, function (p) {
+          const notDuplicate = _.filter(p, function (p) {
               return p.name == param.name;
           }).length === 0;
           // remove duplicated, and more than one level nested (detail.file.src)
@@ -117,15 +117,15 @@ gulp.task('analyze', ['clean:target', 'pre-analyze'], function() {
     ])
     .pipe(map(function(file, cb) {
       hyd.Analyzer.analyze(globalVar.bowerDir + file.relative).then(function(result) {
-        var jsonArray = _.union(result.elements, result.behaviors);
+        const jsonArray = _.union(result.elements, result.behaviors);
         jsonArray.forEach(function(item) {
-          var path = file.relative.replace(/\\/, '/');
+          const path = file.relative.replace(/\\/, '/');
           if (item.is) {
             item.name = item.is;
             item.path = path;
 
-            var bowerFile = file.base + path.split("/")[0] + "/bower.json";
-            var bowerFileContent = fs.readFileSync(bowerFile);
+            const bowerFile = file.base + path.split("/")[0] + "/bower.json";
+            const bowerFileContent = fs.readFileSync(bowerFile);
             item.bowerData = bowerFileContent ? JSON.parse(bowerFileContent) : {};
 
             // Save all items in an array for later processing
@@ -148,12 +148,12 @@ gulp.task('analyze', ['clean:target', 'pre-analyze'], function() {
 // dir:      folder relative to the client folder to write the file
 // suffix:   extra suffix for the name
 function parseTemplate(template, obj, name, dir, suffix) {
-  var className = helpers.camelCase(name) + suffix;
+  const className = helpers.camelCase(name) + suffix;
   // If there is a base .java file we extend it.
-  var classBase = helpers.camelCase(name) + suffix + "Base";
+  const classBase = helpers.camelCase(name) + suffix + "Base";
 
   // We have to compute the appropriate name-space for the component.
-  var prefix =
+  let prefix =
     // For events we prefer the first word of the name if they are standard ones.
     /^Event/.test(suffix) && /^(polymer|iron|paper|neon)-/.test(name) ? name :
     // Otherwise we try the name from its bower.json, then the sub-folder name in
@@ -164,13 +164,13 @@ function parseTemplate(template, obj, name, dir, suffix) {
 
   obj.ns = globalVar.ns + '.' + prefix;
 
-  var targetPath = globalVar.clientDir + prefix + '/' + dir;
-  var targetFile = targetPath + className + ".java";
+  const targetPath = globalVar.clientDir + prefix + '/' + dir;
+  const targetFile = targetPath + className + ".java";
   fs.ensureFileSync(targetFile);
 
-  var baseFile = libDir + globalVar.nspath + '/' + prefix + '/' + dir + classBase + ".java";
+  let baseFile = libDir + globalVar.nspath + '/' + prefix + '/' + dir + classBase + ".java";
   if (!fs.existsSync(baseFile)) {
-    var baseFile = './lib/' + globalVar.nspath + '/' + prefix + '/' + dir + classBase + ".java";
+    baseFile = './lib/' + globalVar.nspath + '/' + prefix + '/' + dir + classBase + ".java";
   }
   if (fs.existsSync(baseFile)) {
     obj.base = classBase;
@@ -181,7 +181,7 @@ function parseTemplate(template, obj, name, dir, suffix) {
   }
 
   gutil.log("Generating: ", targetFile);
-  var tpl = _.template(fs.readFileSync(tplDir + template + '.template'));
+  const tpl = _.template(fs.readFileSync(tplDir + template + '.template'));
   fs.writeFileSync(targetFile, new Buffer(tpl(_.merge({}, null, obj, helpers))));
 }
 
@@ -234,7 +234,7 @@ gulp.task('generate:widget-events', ['parse'], function() {
 
 gulp.task('generate:gwt-module', function () {
   if (globalVar.moduleName != 'Elements' || globalVar.ns != 'com.vaadin.polymer') {
-    var dest = globalVar.publicDir.replace(/[^\/]+\/?$/, '');
+    const dest = globalVar.publicDir.replace(/[^\/]+\/?$/, '');
     gutil.log("Generating Module: " + dest + globalVar.moduleName + ".gwt.xml");
     return gulp.src(tplDir + "GwtModule.template")
       .pipe(rename(globalVar.moduleName + ".gwt.xml"))
@@ -258,15 +258,15 @@ gulp.task('copy:lib', function() {
 });
 
 gulp.task('copy:pom', function() {
-  var tpl = _.template(fs.readFileSync(tplDir + "pom.template"));
-  var pom = globalVar.currentDir + "pom.xml";
+  const tpl = _.template(fs.readFileSync(tplDir + "pom.template"));
+  const pom = globalVar.currentDir + "pom.xml";
 
   // Try to get some configuration from a package.json
   // otherwise use default values
-  var pkgFile = globalVar.currentDir + 'package.json';
+  const pkgFile = globalVar.currentDir + 'package.json';
   globalVar.pkg = {};
   try {
-    var pkgContent = fs.readFileSync(pkgFile);
+    const pkgContent = fs.readFileSync(pkgFile);
     globalVar.pkg = JSON.parse(pkgContent);
   } catch(ignore) {
   }

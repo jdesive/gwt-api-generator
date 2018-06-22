@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 'use strict';
-var gulp = require('gulp')
+const gulp = require('gulp');
 require('../gulpfile');
 
-var gutil = require('gulp-util');
+const gutil = require('gulp-util');
 gutil.log('Running gwt-api-generator version: ' + require('../package.json').version);
 
 require('coa').Cmd()
@@ -42,13 +42,13 @@ require('coa').Cmd()
     .end()
   .opt()
     .name('Version')
-    .title('Version of the generated maven project. (Defaults to package.json.pom.version || pakage.json.version)')
+    .title('Version of the generated maven project. (Defaults to package.json.pom.version || package.json.version)')
     .long('version')
     .end()
   .opt()
     .name('Exclude lib')
     .flag()
-    .title('Do not copy lib java files. Used when the libary .jar is provided (Default: false)')
+    .title('Do not copy lib java files. Used when the library .jar is provided (Default: false)')
     .long('excludeLib')
     .end()
   .opt()

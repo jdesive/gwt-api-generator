@@ -1,14 +1,14 @@
-var args = require('minimist')(process.argv.slice(2));
+const args = require('minimist')(process.argv.slice(2));
 
-var ns = args.groupId || 'com.vaadin.polymer';
-var nspath = ns.replace(/\./g,'/');
-var currentDir = process.cwd() + '/';
+const ns = args.groupId || 'com.vaadin.polymer';
+const nspath = ns.replace(/\./g,'/');
+const currentDir = process.cwd() + '/';
 
-var clientDirBase = currentDir + (args.javaDir || 'src/main/java/').replace(/,+$/, '');
-var publicDirBase = currentDir + (args.resourcesDir || 'src/main/resources/').replace(/,+$/, '');
+const clientDirBase = currentDir + (args.javaDir || 'src/main/java/').replace(/,+$/, '');
+const publicDirBase = currentDir + (args.resourcesDir || 'src/main/resources/').replace(/,+$/, '');
 
-var clientDir = clientDirBase + '/' + nspath + '/';
-var publicDir = publicDirBase + '/' + nspath + '/public/';
+const clientDir = clientDirBase + '/' + nspath + '/';
+const publicDir = publicDirBase + '/' + nspath + '/public/';
 
 module.exports = {
   ns: ns,

@@ -1,8 +1,8 @@
 
-var args = require('minimist')(process.argv.slice(2));
-var gulp = require('gulp');
-var map = require('map-stream');
-var global = require('./global-variables');
+const args = require('minimist')(process.argv.slice(2));
+const gulp = require('gulp');
+const map = require('map-stream');
+const global = require('./global-variables');
 
 gulp.task('pre-analyze:missing-events', function() {
   return gulp
@@ -70,10 +70,10 @@ gulp.task('pre-analyze:new-syntax-events', function() {
     .pipe(map(function(file, cb) {
       file.contents = new Buffer(
           String(file.contents).replace(/([ \t]+\* +)@event +([\w\-]+) +\{\{(.+)\}\} *detail.*\n/g, function(m, $1, $2, $3) {
-            var ret = $1 + "@event " + $2 + "\n" +
+            let ret = $1 + "@event " + $2 + "\n" +
                       $1 + " @param {Object} detail\n";
 
-            var detail = $3.split(/ *, */);
+            const detail = $3.split(/ *, */);
             for (i in detail) {
               ret += detail[i].replace(/(\w+): *(\w+)/g, $1 + "  @param {$2} detail.$1 \n")
             }

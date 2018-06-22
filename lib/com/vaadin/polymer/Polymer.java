@@ -204,7 +204,7 @@ public abstract class Polymer {
             // Dynamic load Polymer and wait until ready
             if (!$wnd._pending_oks) {
                 $wnd._pending_oks = [ok];
-                var l = $doc.createElement('link');
+                const l = $doc.createElement('link');
                 l.rel = 'import';
                 l.href = @com.vaadin.polymer.Polymer::absoluteHref(*)('polymer');
                 l.onload = function() {
@@ -411,7 +411,7 @@ public abstract class Polymer {
     /*-{
         function registered() {
           if (e) {
-              var id = setInterval(function() {
+              const id = setInterval(function() {
                 if (@com.vaadin.polymer.Polymer::isRegisteredElement(*)(e)) {
                   clearInterval(id);
                   if (f) f(e);
@@ -425,7 +425,7 @@ public abstract class Polymer {
             $wnd.HTMLImports.whenReady(registered);
         }
         function loadPolyfill() {
-            var s = $doc.createElement('script');
+            const s = $doc.createElement('script');
             s.src = @com.vaadin.polymer.Polymer::absoluteHref(*)
                         ('webcomponentsjs/webcomponents-lite.js');
             s.onreadystatechange = s.onload = done;
@@ -503,8 +503,8 @@ public abstract class Polymer {
     private static native void reFlow()
     /*-{
       if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
-        var c = 0;
-        var id = setInterval(function() {
+        let c = 0;
+        const id = setInterval(function() {
          // Using $doc.body.offsetWidth in an if, otherwise closure
          // compiler prunes it.
          if (c++ >= 20 && $doc.body.offsetWidth > 0)
@@ -520,7 +520,7 @@ public abstract class Polymer {
      */
     public static native <T> List<T> asList(JavaScriptObject o)
     /*-{
-        var l = @java.util.ArrayList::new()();
+        const l = @java.util.ArrayList::new()();
         l.@java.util.ArrayList::array = o;
         return l;
     }-*/;
