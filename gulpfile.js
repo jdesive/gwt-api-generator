@@ -9,6 +9,7 @@ const gutil = require('gulp-util');
 const _ = require('lodash');
 const runSequence = require('run-sequence');
 const hyd = require("hydrolysis");
+const {Analyzer, FSUrlLoader, generateAnalysis} = require('polymer-analyzer');
 const jsonfile = require('jsonfile');
 const StreamFromArray = require('stream-from-array');
 const rename = require("gulp-rename");
@@ -26,18 +27,18 @@ require('marked');
 // the performance.
 global.parsed = []; // we store all parsed objects so as we can iterate or find behaviors
 
-gulp.task('clean:target', function() {
+gulp.task('clean:target', function () {
   fs.removeSync(globalVar.clientDir + 'element');
   fs.removeSync(globalVar.clientDir + 'widget');
 });
 
-gulp.task('clean:resources', function() {
+gulp.task('clean:resources', function () {
   fs.removeSync(globalVar.publicDir);
 });
 
 gulp.task('clean', ['clean:target', 'clean:resources']);
 
-gulp.task('bower:configure', ['clean:resources'], function(done) {
+gulp.task('bower:configure', ['clean:resources'], function (done) {
   jsonfile.readFile('.bowerrc', function (err, obj) {
     if (!err) {
       fs.copySync('.bowerrc', globalVar.publicDir + '/.bowerrc');
@@ -49,7 +50,7 @@ gulp.task('bower:configure', ['clean:resources'], function(done) {
   });
 });
 
-gulp.task('bower:install', ['clean', 'bower:configure'], function() {
+gulp.task('bower:install', ['clean', 'bower:configure'], function () {
   if (globalVar.bowerPackages) {
     return bower({ cmd: 'install', cwd: globalVar.publicDir, interactive: true }, [globalVar.bowerPackages]);
   } else {
@@ -58,46 +59,38 @@ gulp.task('bower:install', ['clean', 'bower:configure'], function() {
   }
 });
 
-gulp.task('parse', ['analyze'], function(cb) {
-  global.parsed.forEach(function(item) {
-    if (!helpers.isBehavior(item) && item.behaviors && item.behaviors.length) {
-      item.behaviors.forEach(function(name) {
-        const nestedBehaviors = helpers.getNestedBehaviors(item, name);
-        item.properties = _.union(item.properties, nestedBehaviors.properties);
+gulp.task('parse', ['analyze'], function (cb) {
+    global.parsed.forEach(function (item) {
+        if (!helpers.isBehavior(item) && item.behaviors && item.behaviors.length) {
+            item.behaviors.forEach(function (name) {
+                const nestedBehaviors = helpers.getNestedBehaviors(item, name);
+                item.properties = _.union(item.properties, nestedBehaviors.properties);
 
-        // merge events
-        if (nestedBehaviors.events && nestedBehaviors.events.length) {
-          nestedBehaviors.events.forEach(function (event) {
-            const notDuplicate = _.filter(item.events, function (e) {
-                return e.name === event.name;
-              }).length === 0;
-            if (notDuplicate) {
-              item.events.push(event);
-            }
-          });
+                // merge events
+                if (nestedBehaviors.events && nestedBehaviors.events.length) {
+                    nestedBehaviors.events.forEach(function (event) {
+                        const notDuplicate = _.filter(item.events, function (e) {
+                            return e.name === event.name;
+                        }).length === 0;
+                        if (notDuplicate) {
+                            item.events.push(event);
+                        }
+                    });
+                }
+            });
         }
-      });
-    }
-    if (item.events) {
-      item.events.forEach(function(event) {
-        const p = [];
-        event.params.forEach(function(param) {
-          const notDuplicate = _.filter(p, function (p) {
-              return p.name === param.name;
-          }).length === 0;
-          // remove duplicated, and more than one level nested (detail.file.src)
-          if (notDuplicate && !/\..+\./.test(param.name)) {
-            p.push(param);
-          }
-        });
-        event.params = p;
-      });
-    }
-
-    // We don't want to wrap any private api
-    helpers.removePrivateApi(item.properties, 'name');
-  });
-  cb();
+        const unwantedProps = ['root', 'rootPath', 'importPath', '$'];
+        const props = [];
+        if (item.properties) {
+            item.properties.forEach(function (prop) {
+                if (!unwantedProps.includes(prop.name) && prop.privacy === "public") {
+                    props.push(prop);
+                }
+            });
+        }
+        item.properties = props;
+    });
+    cb();
 });
 
 gulp.task('analyze', ['clean:target', 'pre-analyze'], function() {
@@ -116,28 +109,32 @@ gulp.task('analyze', ['clean:target', 'pre-analyze'], function() {
     "!" + globalVar.bowerDir + "*/iron-doc*.html",
     ])
     .pipe(map(function(file, cb) {
-      hyd.Analyzer.analyze(globalVar.bowerDir + file.relative).then(function(result) {
-        const jsonArray = _.union(result.elements, result.behaviors);
-        jsonArray.forEach(function(item) {
-          const path = file.relative.replace(/\\/, '/');
-          if (item.is) {
-            item.name = item.is;
-            item.path = path;
 
-            const bowerFile = file.base + path.split("/")[0] + "/bower.json";
-            const bowerFileContent = fs.readFileSync(bowerFile);
-            item.bowerData = bowerFileContent ? JSON.parse(bowerFileContent) : {};
-
-            // Save all items in an array for later processing
-            global.parsed.push(item);
-          }
+        const analyzer = new Analyzer({
+            urlLoader: new FSUrlLoader('bower_components/')
         });
-        cb(null, file);
-      })
-      ['catch'](function(e){
-        gutil.log(e.stack);
-        cb(null, file);
-      });
+
+        analyzer.analyze([file.relative]).then((analysis) => {
+           const result = generateAnalysis(analysis, '');
+           const jsonArray = _.union(result.elements, result.behaviors);
+           jsonArray.forEach(function (item) {
+              const path = file.relative.replace(/\\/, '/');
+              if(item.name) {
+                  item.path = path;
+
+                  const bowerFile = file.base + path.split("/")[0] + "/bower.json";
+                  const bowerFileContent = fs.readFileSync(bowerFile);
+                  item.bowerData = bowerFileContent ? JSON.parse(bowerFileContent) : {};
+
+                  global.parsed.push(item);
+              }
+           });
+           cb(null, file);
+        })
+        ['catch'](function(e){
+            gutil.log(e.stack);
+            cb(null, file);
+        });
     }));
 });
 
@@ -189,9 +186,9 @@ gulp.task('generate:elements', ['parse'], function() {
   return StreamFromArray(global.parsed,{objectMode: true})
    .on('data', function(item) {
      if (helpers.isBehavior(item)) {
-       parseTemplate('Behavior', item, item.is, '', '');
+       parseTemplate('Behavior', item, item.name, '', '');
      } else {
-       parseTemplate('Element', item, item.is, '', 'Element');
+       parseTemplate('Element', item, item.name, '', 'Element');
      }
    });
 });
@@ -213,7 +210,7 @@ gulp.task('generate:widgets', ['parse'], function() {
   return StreamFromArray(global.parsed,{objectMode: true})
    .on('data', function(item) {
       if (!helpers.isBehavior(item)) {
-        parseTemplate('Widget', item, item.is, 'widget/', '');
+        parseTemplate('Widget', item, item.name, 'widget/', '');
       }
    });
 });

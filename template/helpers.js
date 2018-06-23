@@ -104,6 +104,7 @@ module.exports = {
   },
   computeType: function(t) {
     if (!t) return 'Object';
+    if (t === 'Object' || t === 'object') return 'Object';
     // TODO: Sometimes type have a syntax like: (number|string)
     // We should be able to overload those methods instead of using
     // Object, but JsInterop does not support well overloading
