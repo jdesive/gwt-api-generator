@@ -8,7 +8,6 @@ const globalVar = require('./template/tasks/global-variables');
 const gutil = require('gulp-util');
 const _ = require('lodash');
 const runSequence = require('run-sequence');
-const hyd = require("hydrolysis");
 const {Analyzer, FSUrlLoader, generateAnalysis} = require('polymer-analyzer');
 const jsonfile = require('jsonfile');
 const StreamFromArray = require('stream-from-array');
@@ -109,12 +108,17 @@ gulp.task('analyze', ['clean:target', 'pre-analyze'], function () {
         "!" + globalVar.bowerDir + "*/iron-doc*.html",
     ])
         .pipe(map(function (file, cb) {
+            const fileLocation = file.relative.split('\\');
+            const fileDir = fileLocation[0];
+            const comFile = fileLocation[1];
 
             const analyzer = new Analyzer({
-                urlLoader: new FSUrlLoader('bower_components/')
+                urlLoader: new FSUrlLoader(file.base + fileDir + "/")
             });
 
-            analyzer.analyze([file.relative]).then((analysis) => {
+            analyzer.analyze([comFile]).then((analysis) => {
+                gutil.log("Analyzing: ", comFile);
+
                 const result = generateAnalysis(analysis, '');
                 const jsonArray = _.union(result.elements, result.behaviors);
                 jsonArray.forEach(function (item) {
