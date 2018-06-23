@@ -1,3 +1,4 @@
+"use strict";
 const args = require('minimist')(process.argv.slice(2));
 
 const ns = args.groupId || 'com.vaadin.polymer';

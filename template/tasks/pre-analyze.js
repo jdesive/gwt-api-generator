@@ -1,8 +1,9 @@
-
-const args = require('minimist')(process.argv.slice(2));
+"use strict";
 const gulp = require('gulp');
 const map = require('map-stream');
 const global = require('./global-variables');
+
+require('minimist')(process.argv.slice(2));
 
 gulp.task('pre-analyze:missing-events', function() {
   return gulp

@@ -1,5 +1,4 @@
 "use strict";
-
 const args = require('minimist')(process.argv.slice(2));
 const gulp = require('gulp');
 const bower = require('gulp-bower');
@@ -13,13 +12,14 @@ const hyd = require("hydrolysis");
 const jsonfile = require('jsonfile');
 const StreamFromArray = require('stream-from-array');
 const rename = require("gulp-rename");
-const marked = require('marked');
 
 const libDir = __dirname + '/lib/';
 const tplDir = __dirname + '/template/';
 
 const helpers = require(tplDir + "helpers");
+
 require('require-dir')(tplDir + 'tasks');
+require('marked');
 
 // Using global because if we try to pass it to templates via the helper or any object
 // we need to call merge which makes a copy of the structure per template slowing down
@@ -69,7 +69,7 @@ gulp.task('parse', ['analyze'], function(cb) {
         if (nestedBehaviors.events && nestedBehaviors.events.length) {
           nestedBehaviors.events.forEach(function (event) {
             const notDuplicate = _.filter(item.events, function (e) {
-                return e.name == event.name;
+                return e.name === event.name;
               }).length === 0;
             if (notDuplicate) {
               item.events.push(event);
@@ -83,7 +83,7 @@ gulp.task('parse', ['analyze'], function(cb) {
         const p = [];
         event.params.forEach(function(param) {
           const notDuplicate = _.filter(p, function (p) {
-              return p.name == param.name;
+              return p.name === param.name;
           }).length === 0;
           // remove duplicated, and more than one level nested (detail.file.src)
           if (notDuplicate && !/\..+\./.test(param.name)) {
@@ -233,7 +233,7 @@ gulp.task('generate:widget-events', ['parse'], function() {
 });
 
 gulp.task('generate:gwt-module', function () {
-  if (globalVar.moduleName != 'Elements' || globalVar.ns != 'com.vaadin.polymer') {
+  if (globalVar.moduleName !== 'Elements' || globalVar.ns !== 'com.vaadin.polymer') {
     const dest = globalVar.publicDir.replace(/[^\/]+\/?$/, '');
     gutil.log("Generating Module: " + dest + globalVar.moduleName + ".gwt.xml");
     return gulp.src(tplDir + "GwtModule.template")
