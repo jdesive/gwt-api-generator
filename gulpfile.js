@@ -93,49 +93,52 @@ gulp.task('parse', ['analyze'], function (cb) {
     cb();
 });
 
-gulp.task('analyze', ['clean:target', 'pre-analyze'], function() {
-  return gulp.src([globalVar.bowerDir + "*/*.html",
-    // vaadin elements
-    globalVar.bowerDir + "*/vaadin-*/vaadin-*.html",
-    // ignore all demo.html, index.html and metadata.html files
-    "!" + globalVar.bowerDir + "*/*demo.html",
-    "!" + globalVar.bowerDir + "*/*index.html",
-    "!" + globalVar.bowerDir + "*/*metadata.html",
-    // includes a set of js files only, and some do not exist
-    "!" + globalVar.bowerDir + "*/*web-animations.html",
-    // Not useful in gwt and also has spurious event names
-    "!" + globalVar.bowerDir + "*/*iron-jsonp-library.html",
-    // 
-    "!" + globalVar.bowerDir + "*/iron-doc*.html",
+gulp.task('analyze', ['clean:target', 'pre-analyze'], function () {
+    return gulp.src([globalVar.bowerDir + "*/*.html",
+        // vaadin elements
+        globalVar.bowerDir + "*/vaadin-*/vaadin-*.html",
+        // ignore all demo.html, index.html and metadata.html files
+        "!" + globalVar.bowerDir + "*/*demo.html",
+        "!" + globalVar.bowerDir + "*/*index.html",
+        "!" + globalVar.bowerDir + "*/*metadata.html",
+        // includes a set of js files only, and some do not exist
+        "!" + globalVar.bowerDir + "*/*web-animations.html",
+        // Not useful in gwt and also has spurious event names
+        "!" + globalVar.bowerDir + "*/*iron-jsonp-library.html",
+        //
+        "!" + globalVar.bowerDir + "*/iron-doc*.html",
     ])
-    .pipe(map(function(file, cb) {
+        .pipe(map(function (file, cb) {
 
-        const analyzer = new Analyzer({
-            urlLoader: new FSUrlLoader('bower_components/')
-        });
+            const analyzer = new Analyzer({
+                urlLoader: new FSUrlLoader('bower_components/')
+            });
 
-        analyzer.analyze([file.relative]).then((analysis) => {
-           const result = generateAnalysis(analysis, '');
-           const jsonArray = _.union(result.elements, result.behaviors);
-           jsonArray.forEach(function (item) {
-              const path = file.relative.replace(/\\/, '/');
-              if(item.name) {
-                  item.path = path;
+            analyzer.analyze([file.relative]).then((analysis) => {
+                const result = generateAnalysis(analysis, '');
+                const jsonArray = _.union(result.elements, result.behaviors);
+                jsonArray.forEach(function (item) {
+                    const path = file.relative.replace(/\\/, '/');
+                    // Polymer 1/Hybrid analysis does not have a 'name' property
+                    if (!item.name) {
+                        item.name = _.camelCase(item.tagname);
+                        item.name = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+                    }
+                    item.path = path;
 
                   const bowerFile = file.base + path.split("/")[0] + "/bower.json";
                   const bowerFileContent = fs.readFileSync(bowerFile);
                   item.bowerData = bowerFileContent ? JSON.parse(bowerFileContent) : {};
 
-                  global.parsed.push(item);
-              }
-           });
-           cb(null, file);
-        })
-        ['catch'](function(e){
-            gutil.log(e.stack);
-            cb(null, file);
-        });
-    }));
+                    global.parsed.push(item);
+                });
+                cb(null, file);
+            })
+                ['catch'](function (e) {
+                gutil.log(e.stack);
+                cb(null, file);
+            });
+        }));
 });
 
 // Parse a template and generates a .java file.
