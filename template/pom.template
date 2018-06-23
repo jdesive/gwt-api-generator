@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+  <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
-    <version>4</version>
+    <version>9</version>
   </parent>
 
-  <modelVersion>4.0.0</modelVersion>
   <groupId><%= ns %></groupId>
-  <version><%= pkg.pom.version %>-SNAPSHOT</version>
   <artifactId><%= artifactId %></artifactId>
+  <version><%= pkg.pom.version %>-SNAPSHOT</version>
   <name><%= pkg.name || artifactId %></name>
   <description><%= pkg.description || artifactId %></description>
  <% if (pkg.license) { %>
@@ -33,13 +34,6 @@
     <url><%= pkg.pom.scm.url %></url>
   </scm>
  <% } %>
-  <developers>
-    <developer>
-      <id><%= pkg.author %></id>
-      <name><%= pkg.author %></name>
-    </developer>
-  </developers>
-
 
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -47,14 +41,6 @@
     <additionalparam>-Xdoclint:none</additionalparam>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <uniqueVersion>false</uniqueVersion>
-    </snapshotRepository>
-  </distributionManagement>
 
   <repositories>
     <repository>
@@ -106,51 +92,88 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.6</version>
         <executions>
-            <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                    <goal>jar</goal>
-                </goals>
-                <configuration>
-                    <doclint>none</doclint>
-                </configuration>
-            </execution>
+          <execution>
+            <id>install node and npm</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>v10.0.0</nodeVersion>
+              <npmVersion>3.9.2</npmVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bower install</id>
+            <goals>
+              <goal>bower</goal>
+            </goals>
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
         <executions>
-          <execution>
-            <phase>generate-resources</phase>
-            <configuration>
-              <target description="Remove files to speed-up deployment" name="clean">
-                <delete includeEmptyDirs="true">
-                  <fileset dir="src/main/resources/<%= nspath %>/public/bower_components/" defaultexcludes="no">
-                    <include name="**/demo/**/*"/>
-                    <include name="**/test/**/*"/>
-                    <include name="**/docs/**/*"/>
-                    <include name="**/.*"/>
-                    <include name="**/index.html"/>
-                    <include name="**/package.json"/>
-                    <include name="**/*.md"/>
-                    <include name="**/*.txt"/>
-                  </fileset>
-                  <dirset dir="src/main/resources/<%= nspath %>/public/bower_components/">
-                    <include name="**/demo"/>
-                    <include name="**/test"/>
-                    <include name="**/docs"/>
-                  </dirset>
-                </delete>
-             </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
+           <execution>
+              <id>Generate GWT files</id>
+              <phase>generate-resources</phase>
+              <configuration>
+                <target>
+                  <exec
+                    dir="${project.basedir}"
+                    executable="node_modules/.bin/gwt-api-generator">
+                  </exec>
+                </target>
+              </configuration>
+              <goals>
+                <goal>run</goal>
+              </goals>
+           </execution>
+           <execution>
+             <id>Trim files</id>
+             <phase>generate-resources</phase>
+             <configuration>
+               <target description="Remove files to speed-up deployment" name="clean">
+                 <delete includeEmptyDirs="true">
+                   <fileset dir="src/main/resources/<%= nspath %>/public/bower_components/" defaultexcludes="no">
+                     <include name="**/demo/**/*"/>
+                     <include name="**/test/**/*"/>
+                     <include name="**/docs/**/*"/>
+                     <include name="**/.*"/>
+                     <include name="**/index.html"/>
+                     <include name="**/package.json"/>
+                     <include name="**/*.md"/>
+                     <include name="**/*.txt"/>
+                   </fileset>
+                   <dirset dir="src/main/resources/<%= nspath %>/public/bower_components/">
+                     <include name="**/demo"/>
+                     <include name="**/test"/>
+                     <include name="**/docs"/>
+                   </dirset>
+                 </delete>
+               </target>
+             </configuration>
+             <goals>
+               <goal>run</goal>
+             </goals>
+           </execution>
         </executions>
       </plugin>
     </plugins>

@@ -273,6 +273,11 @@ gulp.task('copy:pom', function() {
   globalVar.pkg.pom = globalVar.pkg.pom || {};
   globalVar.pkg.pom.version = args.version || globalVar.pkg.pom.version || globalVar.pkg.version;
 
+  // Ugly hack to allow mvn variables trough templates
+  globalVar.project = {
+      basedir: "${project.basedir}"
+  };
+
   fs.ensureFileSync(pom);
   fs.writeFileSync(pom, new Buffer(tpl(_.merge({}, null, globalVar, helpers))));
 });

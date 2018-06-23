@@ -74,7 +74,7 @@ gulp.task('pre-analyze:new-syntax-events', function() {
                       $1 + " @param {Object} detail\n";
 
             const detail = $3.split(/ *, */);
-            for (i in detail) {
+            for (let i in detail) {
               ret += detail[i].replace(/(\w+): *(\w+)/g, $1 + "  @param {$2} detail.$1 \n")
             }
 
@@ -90,4 +90,4 @@ gulp.task('pre-analyze', [
                           'pre-analyze:missing-events',
                           'pre-analyze:new-syntax-events',
                           'pre-analyze:missing-behaviors'
-                         ])
+                         ]);
