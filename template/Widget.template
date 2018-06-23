@@ -60,6 +60,7 @@ public class <%= className() %> extends <%= base ? base : 'PolymerWidget' %> {
     public <%= computeGenericType(item.type) %> <%= computeType(item.type) %> <%= item.getter %>() {
         return getPolymerElement().<%= computeGetterWithPrefix(item) %>();
     }
+
     /**
      * <%= getDescription('     ', item) %>
      *
