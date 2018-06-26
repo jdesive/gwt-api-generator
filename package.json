@@ -12,15 +12,14 @@
     "gulp-bower": "latest",
     "gulp-rename": "latest",
     "gulp-util": "latest",
-    "polymer-analyzer": "^2.7.0",
+    "polymer-analyzer": "^3.0.1",
     "jsonfile": "^2.2.1",
     "lodash": "latest",
     "map-stream": "latest",
     "marked": "latest",
     "minimist": "^1.1.1",
     "require-dir": "latest",
-    "run-sequence": "latest",
-    "stream-from-array": "latest"
+    "run-sequence": "latest"
   },
   "bin": {
     "gwt-api-generator": "./bin/gwt-api-generator.js"
