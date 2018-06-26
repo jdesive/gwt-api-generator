@@ -36,9 +36,5 @@ global.parsed = []; // we store all parsed objects so as we can iterate or find 
  */
 
 gulp.task('default', function () {
-    if (args.pom) {
-        runSequence('clean', 'bower:install', 'generate', 'copy:lib', 'copy:pom');
-    } else {
-        runSequence('clean', 'bower:install', 'generate', 'copy:lib');
-    }
+    runSequence('clean', 'bower:install', 'generate', 'copy:lib', 'copy:pom');
 });
