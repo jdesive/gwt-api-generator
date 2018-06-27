@@ -14,7 +14,7 @@ import com.vaadin.polymer.PolymerFunction;
  * <%= getDescription(' ') %>
  */
 @JsType(isNative=true)
-public interface <%= className() %> {
+public interface <%= className(name) %> {
 
     @JsOverlay public static final String NAME = "<%= name %>";
     @JsOverlay public static final String SRC = "<%= path %>";

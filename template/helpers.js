@@ -1,5 +1,6 @@
 "use strict";
 const _ = require('lodash');
+const gutil = require('gulp-util');
 
 module.exports = {
     marked: require('marked').setOptions({
@@ -86,8 +87,11 @@ module.exports = {
         }
         return "extends " + e.join(',');
     },
+    getterName: function (item) {
+        return (item.type === 'boolean' ? 'is' : 'get') + camelCase(item.name);
+    },
     camelCase: function (s) {
-        return s.toString().replace(/^Polymer\./, '').replace(/[^\-\w\.]/g, '').replace(/(\b|-|\.)\w/g, function (m) {
+        return s.replace(/^Polymer\./, '').replace(/[^\-\w\.]/g, '').replace(/(\b|-|\.)\w/g, function (m) {
             return m.toUpperCase().replace(/[-\.]/g, '');
         });
     },
@@ -138,13 +142,17 @@ module.exports = {
     },
     sortProperties: function (properties) {
     },
-    getGettersAndSetters: function (properties) {
+    getGettersAndSetters: function (props) {
         // Sorting properties so no-typed and String methods are at end
-        /*    properties.sort(function(a, b) {
-              const t1 = this.computeType(a.type);
-              const t2 = this.computeType(b.type);
-              return t1 === t2 ? 0: !a.type && b.type ? 1 : a.type && !b.type ? -1: t1 === 'String' ? 1 : -1;
-            }.bind(this));*/
+        const properties = [];
+        props.forEach(prop => {
+            properties.push(prop);
+        });
+        properties.sort(function(a, b) {
+              const t1 = this.computeType(a.attributeType);
+              const t2 = this.computeType(b.attributeType);
+              return t1 === t2 ? 0: !a.attributeType && b.attributeType ? 1 : a.attributeType && !b.attributeType ? -1: t1 === 'String' ? 1 : -1;
+            }.bind(this));
         const ret = [];
         // We use done hash to avoid generate same property with different signature (unsupported in JsInterop)
         const done = {};
@@ -155,21 +163,22 @@ module.exports = {
         const cache = {};
 
         _.forEach(properties, function (item) {
+            item.private = item.privacy !== 'public';
             // We consider as properties:
             if (
                 // Items with the published tag (those defined in the properties section)
                 item.published ||
                 // Non function items
-                !item.private && item.type && !/function/i.test(item.type) ||
+                !item.private && item.attributeType && !/function/i.test(item.attributeType) ||
                 // Properties defined with customized get/set syntax
-                !item.type && cache[item.name] && cache[item.name].type) {
+                !item.attributeType && cache[item.name] && cache[item.name].attributeType) {
 
                 // defined with customized get/set, if we are here is because
                 // this item.type is undefined and cached one has the correct type
                 item = cache[item.name] ? cache[item.name] : item;
 
                 item.getter = item.getter || this.computeGetterWithPrefix(item);
-                item.setter = item.setter || (this.computeSetterWithPrefix(item) + '(' + this.computeType(item.type) + ' value)');
+                item.setter = item.setter || (this.computeSetterWithPrefix(item) + '(' + this.computeType(item.attributeType) + ' value)');
 
                 // JsInterop does not support a property with two signatures
                 if (!done[item.getter]) {
@@ -201,13 +210,17 @@ module.exports = {
     computeSignature: function (method) {
         return method.replace(/\s+\w+\s*([,\)])/g, '$1');
     },
-    getMethods: function (properties) {
+    getMethods: function (props) {
         // Sorting properties so Object methods are at first
-        /*    properties.sort(function(a, b) {
-              const t1 = this.typedParamsString(a);
-              const t2 = this.typedParamsString(b);
-              return t1 === t2 ? 0: /^Object/.test(t1) ? -1 : 1;
-            }.bind(this));*/
+        const properties = [];
+        this.getGettersAndSetters(props).forEach(prop => {
+            properties.push(prop);
+        });
+        properties.sort(function(a, b) {
+          const t1 = this.typedParamsString(a);
+          const t2 = this.typedParamsString(b);
+          return t1 === t2 ? 0: /^Object/.test(t1) ? -1 : 1;
+        }.bind(this));
 
         // Skip functions with name equal to a getter/setter
         const gsetters = {};
@@ -222,13 +235,15 @@ module.exports = {
         const ret = [];
         const done = {};
         _.forEach(properties, function (item) {
-            if (!gsetters[item.name] && !item.getter && !item.private && !item.published && /function/i.test(item.type)) {
+            item.private = item.privacy !== 'public';
+            if (item.getter && !item.private) {
                 item.method = item.method || item.name + '(' + this.typedParamsString(item) + ')';
                 // JsInterop + SDM do not support method overloading if one signature is object
                 const other = item.method.replace(/String/, 'Object');
                 const signature = this.computeSignature(item.method);
                 const other_sig = this.computeSignature(other);
                 if (!gsetters[signature] && !done[signature] && !done[other_sig]) {
+                    gutil.log(item);
                     ret.push(item);
                     done[signature] = true;
                 }
@@ -309,8 +324,8 @@ module.exports = {
         return result.join(', ');
     },
     returnString: function (method) {
-        if (method['return'] && method['return']['type']) {
-            return this.computeType(method['return']['type'])
+        if (method.attributeType !== 'void') {
+            return this.computeType(method.attributeType);
         }
         return 'void';
     },

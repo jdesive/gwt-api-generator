@@ -5,6 +5,7 @@ const global = require('./global-variables');
 const {Analyzer, FsUrlLoader, PackageUrlResolver, generateAnalysis} = require('polymer-analyzer');
 const gutil = require('gulp-util');
 const fs = require('fs-extra');
+const _ = require('lodash');
 
 require('minimist')(process.argv.slice(2));
 
@@ -50,6 +51,13 @@ gulp.task('analyze', ['clean:target', 'pre-analyze'], function () {
 
                 if (element) {
                     //gutil.log("\tFound element " + element.tagName);
+
+                    if(!element.tagName) {
+                        element.tagName = _.camelCase(comFile.split('.')[0]);
+                        element.tagName = element.tagName.charAt(0).toUpperCase() + element.tagName.slice(1);
+                        gutil.log("Patching polymer 1.x component")
+                    }
+
                     element.path = file.relative.replace(/\\/, '/');
                     element.name = element.tagName;
                     element.type = 'element';
@@ -61,6 +69,9 @@ gulp.task('analyze', ['clean:target', 'pre-analyze'], function () {
 
                 if (behavior) {
                     //gutil.log("\tFound behavior " + behavior.className);
+
+
+
                     behavior.path = file.relative.replace(/\\/, '/');
                     behavior.name = behavior.className;
                     behavior.type = 'behavior';

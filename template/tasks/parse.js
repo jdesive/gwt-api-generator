@@ -21,8 +21,8 @@ gulp.task('parse', ['analyze'], function (cb) {
             item.properties = props;
         } else if(item.type === 'behavior') {
             // Behavior
-            item.behaviorAssignments.forEach(function (name) {
-                const nestedBehaviors = helpers.getNestedBehaviors(item, name);
+            item.behaviorAssignments.forEach(function (behavior) {
+                const nestedBehaviors = helpers.getNestedBehaviors(item, behavior.identifier);
                 item.properties = _.union(item.properties, nestedBehaviors.properties);
 
                 // merge events

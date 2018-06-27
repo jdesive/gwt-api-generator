@@ -70,7 +70,6 @@ gulp.task('generate:events', ['parse'], function () {
             item.events.forEach(function (event) {
                 event.bowerData = item.bowerData;
                 event.name = event.name.replace(/\s.*$/, '');
-                event.type = 'element event';
                 parseTemplate('ElementEvent', event, event.name, 'event/', 'Event');
             });
         }
@@ -80,7 +79,7 @@ gulp.task('generate:events', ['parse'], function () {
 
 gulp.task('generate:widgets', ['parse'], function () {
     parsed.forEach(function (item) {
-        if (!helpers.isBehavior(item)) {
+        if (item.type !== 'behavior') {
             item.type = 'widget';
             parseTemplate('Widget', item, item.name, 'widget/', '');
         }

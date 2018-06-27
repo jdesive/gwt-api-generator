@@ -16,7 +16,7 @@ import com.vaadin.polymer.PolymerFunction;
  * <%= getDescription(' ') %>
  */
 @JsType(isNative=true, namespace = JsPackage.GLOBAL, name = "HTMLElement")
-public class <%= elementClassName() %> extends <%= base ? base : 'PolymerElement' %> {
+public class <%= elementClassName(name) %> extends <%= base ? base : 'PolymerElement' %> {
 
     @JsOverlay public static final String TAG = "<%= name %>";
     @JsOverlay public static final String SRC = "<%= path %>";

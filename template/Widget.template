@@ -19,32 +19,32 @@ import jsinterop.base.Js;
 /**
  * <%= getDescription(' ') %>
  */
-public class <%= className() %> extends <%= base ? base : 'PolymerWidget' %> {
+public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %> {
     /**
      * Default Constructor.
      */
-    public <%= className() %>() {
+    public <%= className(name) %>() {
        this("");
     }
 
     /**
      * Constructor used by UIBinder to create widgets with content.
      */
-    public <%= className() %>(String html) {
-        super(<%= elementClassName() %>.TAG, <%= elementClassName() %>.SRC, html);
+    public <%= className(name) %>(String html) {
+        super(<%= elementClassName(name) %>.TAG, <%= elementClassName(name) %>.SRC, html);
     }
 
     /**
      * Constructor used by GWT widgets that extend this polymer widget
      */
-    public <%= className() %>(String tag, String src, String html) {
+    public <%= className(name) %>(String tag, String src, String html) {
         super(tag, src, html);
     }
 
     /**
      * Gets a handle to the Polymer object's underlying DOM element.
      */
-    public <%= elementClassName() %> getPolymerElement() {
+    public <%= elementClassName(name) %> getPolymerElement() {
         return Js.cast(getElement());
     }
 
@@ -57,7 +57,7 @@ public class <%= className() %> extends <%= base ? base : 'PolymerWidget' %> {
      * @type <%= item.type %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      */
-    public <%= computeGenericType(item.type) %> <%= computeType(item.type) %> <%= item.getter %>() {
+    public <%= computeGenericType(item.attributeType) %> <%= computeType(item.attributeType) %> <%= item.getter %>() {
         return getPolymerElement().<%= computeGetterWithPrefix(item) %>();
     }
 
@@ -69,7 +69,7 @@ public class <%= className() %> extends <%= base ? base : 'PolymerWidget' %> {
      * @type <%= item.type %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      */
-    public <%= computeGenericType(item.type) %> void <%= item.setter %> {
+    public <%= computeGenericType(item.attributeType) %> void <%= item.setter %> {
         getPolymerElement().<%= computeSetterWithPrefix(item) %>(value);
     }
 <% }); %>
@@ -86,7 +86,7 @@ public class <%= className() %> extends <%= base ? base : 'PolymerWidget' %> {
         Polymer.property(this.getPolymerElement(), "<%= item.name %>", value);
     }
 <% }); %>
-<% _.forEach(getMethods(properties), function(item) { const retType = returnString(item); %>
+<% getMethods(properties).forEach((item) => { const retType = returnString(item); %>
     /**
      * <%= getDescription('     ', item) %>
      *
@@ -100,7 +100,7 @@ public class <%= className() %> extends <%= base ? base : 'PolymerWidget' %> {
         <%= retType != 'void' ? 'return ' : ''%>getPolymerElement().<%= item.name %>(<%= paramsString(item) %>);
     }
 <% }); %>
-<% if (hasEvents()) _.forEach(events, function(event){ %>
+<% events.forEach((event, key) => { %>
     /**
      * <%= getDescription('     ', event) %>
      *
