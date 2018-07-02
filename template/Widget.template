@@ -2,7 +2,7 @@
 package <%= ns %>.widget;
 
 import <%= ns %>.*;
-<% if (hasEvents()) _.forEach(events, function(event){ %>
+<% events.forEach(function(event){ %>
 import <%= event.ns %>.widget.event.<%= camelCase(event.name) %>Event;
 import <%= event.ns %>.widget.event.<%= camelCase(event.name) %>EventHandler;
 <% }); %>
