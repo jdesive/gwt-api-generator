@@ -52,6 +52,6 @@ public class <%= elementClassName(name) %> extends <%= base ? base : 'PolymerEle
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      * <%= item.return && item.return.type ? '@return {' + returnString(item) + '}' : ''%>
      */
-    public native <%= returnString(item) %> <%= item.method %>;
+    public native <%= computeGenericType(item.type) %> <%= returnString(item) %> <%= item.method %>;
 <% }); %>
 }
