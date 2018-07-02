@@ -47,7 +47,6 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
     public <%= elementClassName(name) %> getPolymerElement() {
         return Js.cast(getElement());
     }
-
 <% _.forEach(getGettersAndSetters(properties), function(item) { %>
     /**
      * <%= getDescription('     ', item) %>
@@ -57,7 +56,7 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
      * @type <%= item.type %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      */
-    public <%= computeGenericType(item.attributeType) %> <%= computeType(item.attributeType) %> <%= item.getter %>() {
+    public <%= computeType(item.attributeType) %> <%= item.getter %>() {
         return getPolymerElement().<%= computeGetterWithPrefix(item) %>();
     }
 
@@ -69,11 +68,10 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
      * @type <%= item.type %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      */
-    public <%= computeGenericType(item.attributeType) %> void <%= item.setter %> {
+    public void <%= item.setter %> {
         getPolymerElement().<%= computeSetterWithPrefix(item) %>(value);
     }
-<% }); %>
-<% _.forEach(getStringSetters(properties), function(item) { %>
+<% }); %> <% _.forEach(getStringSetters(properties), function(item) { %>
     // Needed in UIBinder
     /**
      * <%= getDescription('     ', item) %>
@@ -85,22 +83,20 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
     public void <%= computeSetterWithPrefix(item) %>(String value) {
         Polymer.property(this.getPolymerElement(), "<%= item.name %>", value);
     }
-<% }); %>
-<% getMethods(properties).forEach((item) => { const retType = returnString(item); %>
+<% }); %> <% getMethods(properties).forEach((item) => { const retType = returnString(item); %>
     /**
      * <%= getDescription('     ', item) %>
      *
      * JavaScript Info:
      * @method <%= item.name %><% if (!!item.params) _.forEach(item.params, function(param) { %>
      * @param {<%= param.type %>} <%= param.name %> <%= param.description %> <% }); %>
-     * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
-     * <%= item.return && item.return.type ? '@return {' + returnString(item) + '}' : ''%>
+     * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : '' %>
+     * <%= item.return && item.return.type ? '@return {' + returnString(item) + '}' : '' %>
      */
     public <%= retType %> <%= item.method %> {
-        <%= retType != 'void' ? 'return ' : ''%>getPolymerElement().<%= item.name %>(<%= paramsString(item) %>);
+        <%= retType != 'void' ? 'return ' : ''%>((<%= retType %>) Polymer.property(this.getPolymerElement(), "<%= item.name %>"));
     }
-<% }); %>
-<% events.forEach((event, key) => { %>
+<% }); %> <% events.forEach((event, key) => { %>
     /**
      * <%= getDescription('     ', event) %>
      *

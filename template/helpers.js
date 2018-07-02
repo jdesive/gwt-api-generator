@@ -237,7 +237,8 @@ module.exports = {
         _.forEach(properties, function (item) {
             item.private = item.privacy !== 'public';
             if (item.getter && !item.private) {
-                item.method = item.method || item.name + '(' + this.typedParamsString(item) + ')';
+                //item.method = item.method || item.name + '(' + this.typedParamsString(item) + ')';
+                this.setMethodName(item);
                 // JsInterop + SDM do not support method overloading if one signature is object
                 const other = item.method.replace(/String/, 'Object');
                 const signature = this.computeSignature(item.method);
@@ -250,6 +251,28 @@ module.exports = {
             }
         }.bind(this));
         return ret;
+    },
+    setMethodName: function (item) {
+
+        const params = this.typedParamsString(item);
+
+        if(params === "") {
+            item.method = this.getMethodName(item) + "()";
+        }else{
+            item.method = this.getMethodName(item) + '(' + params + ')';
+        }
+
+    },
+    getMethodName: function (item) {
+        const params = this.typedParamsString(item);
+        if(params === "") {
+            return "get" + this.capitalize(item.name) + "Property";
+        }else{
+            return "set" + this.capitalize(item.name) + + "Property";
+        }
+    },
+    capitalize: function (str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
     },
     removePrivateApi: function (arr, prop) {
         for (let i = arr.length - 1; i >= 0; i--) {
