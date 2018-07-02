@@ -56,7 +56,7 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
      * @type <%= item.type %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      */
-    public <%= computeType(item.attributeType) %> <%= item.getter %>() {
+    public <%= computeGenericType(item.type) %> <%= computeType(item.attributeType) %> <%= item.getter %>() {
         return getPolymerElement().<%= computeGetterWithPrefix(item) %>();
     }
 
@@ -93,7 +93,7 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : '' %>
      * <%= item.return && item.return.type ? '@return {' + returnString(item) + '}' : '' %>
      */
-    public <%= retType %> <%= item.method %> {
+    public <%= computeGenericType(item.type) %> <%= retType %> <%= item.method %> {
         <%= retType != 'void' ? 'return ' : ''%>((<%= retType %>) Polymer.property(this.getPolymerElement(), "<%= item.name %>"));
     }
 <% }); %> <% events.forEach((event, key) => { %>
