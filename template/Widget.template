@@ -68,9 +68,9 @@ public class <%= className(name) %> extends <%= base ? base : 'PolymerWidget' %>
      * @type <%= item.type %>
      * <%= item.isBehavior ? ('@behavior ' + item.behavior ) : ''%>
      */
-    public void <%= item.setter %> {
+    /*public void <%= item.setter %> { // Determine if the method name for UIBinder matters (I imagine it does)
         getPolymerElement().<%= computeSetterWithPrefix(item) %>(value);
-    }
+    }*/
 <% }); %> <% _.forEach(getStringSetters(properties), function(item) { %>
     // Needed in UIBinder
     /**
